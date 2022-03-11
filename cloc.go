@@ -64,17 +64,18 @@ func analyzeFile(localPath string, languages map[string]*Language) {
 					text := sc.Text()
 					pureText := strings.Trim(text, " ")
 					commented := false
-					if !statusIsCode {
-						languages[ext].comments += 1
-						if strings.HasPrefix(pureText, lan.multiComment[lastComment][1]) {
-							statusIsCode = true
-							lastComment = 0
-						}
-						continue
-					}
 
 					if pureText == "" {
 						languages[ext].blanks += 1
+						continue
+					}
+
+					if !statusIsCode {
+						languages[ext].comments += 1
+						if strings.HasSuffix(pureText, lan.multiComment[lastComment][1]) {
+							statusIsCode = true
+							lastComment = 0
+						}
 						continue
 					}
 
@@ -94,8 +95,10 @@ func analyzeFile(localPath string, languages map[string]*Language) {
 						}
 						if strings.HasPrefix(pureText, lan.multiComment[i][0]) {
 							languages[ext].comments += 1
-							statusIsCode = false
-							lastComment = i
+							if !strings.HasSuffix(pureText[len(lan.multiComment[i][0]):], lan.multiComment[i][1]) {
+								statusIsCode = false
+								lastComment = i
+							}
 							commented = true
 							continue
 						}
